@@ -15,7 +15,8 @@ connectDB();
 
 const app = express();
 
-// Middleware
+// Middleware shocshuoasviuebviebyerbvuyhberyuyerbvyuryuerbevyuuer
+// updated
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
