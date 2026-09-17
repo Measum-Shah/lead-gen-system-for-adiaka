@@ -18,19 +18,21 @@ export const getFirstTouchEmailTemplate = (lead, settings) => {
         body {
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f4f4;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: #f8fafc;
         }
         .email-container {
             max-width: 600px;
-            margin: 20px auto;
+            margin: 40px auto;
             background-color: #ffffff;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e2e8f0;
         }
         .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: #0f172a;
+            border-bottom: 4px solid #f59e0b;
             color: #ffffff;
             padding: 40px 30px;
             text-align: center;
@@ -39,10 +41,11 @@ export const getFirstTouchEmailTemplate = (lead, settings) => {
             margin: 0;
             font-size: 28px;
             font-weight: 600;
+            letter-spacing: -0.5px;
         }
         .content {
             padding: 40px 30px;
-            color: #333333;
+            color: #334155;
             line-height: 1.6;
         }
         .content p {
@@ -50,50 +53,49 @@ export const getFirstTouchEmailTemplate = (lead, settings) => {
             font-size: 16px;
         }
         .highlight-box {
-            background-color: #f8f9fa;
-            border-left: 4px solid #667eea;
-            padding: 20px;
-            margin: 24px 0;
-            border-radius: 4px;
+            background-color: #f8fafc;
+            border-left: 4px solid #f59e0b;
+            padding: 24px;
+            margin: 32px 0;
+            border-radius: 0 8px 8px 0;
         }
         .highlight-box p {
             margin: 0;
-            color: #555555;
+            color: #475569;
         }
         .cta-button {
             display: inline-block;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-color: #25D366;
             color: #ffffff;
             text-decoration: none;
             padding: 14px 32px;
             border-radius: 6px;
             font-weight: 600;
             margin: 20px 0;
-            transition: transform 0.2s;
-        }
-        .cta-button:hover {
-            transform: translateY(-2px);
+            font-size: 16px;
         }
         .footer {
-            background-color: #f8f9fa;
+            background-color: #f8fafc;
             padding: 30px;
             text-align: center;
-            color: #666666;
+            color: #64748b;
             font-size: 14px;
+            border-top: 1px solid #e2e8f0;
         }
         .footer a {
-            color: #667eea;
-            text-decoration: none;
+            color: #0f172a;
+            text-decoration: underline;
         }
         .divider {
             height: 1px;
-            background-color: #e0e0e0;
-            margin: 30px 0;
+            background-color: #e2e8f0;
+            margin: 32px 0;
         }
         @media only screen and (max-width: 600px) {
             .email-container {
                 margin: 0;
                 border-radius: 0;
+                border: none;
             }
             .header {
                 padding: 30px 20px;
@@ -110,7 +112,7 @@ export const getFirstTouchEmailTemplate = (lead, settings) => {
 <body>
     <div class="email-container">
         <div class="header">
-            <h1>Welcome, ${firstName}! 👋</h1>
+            <h1>Welcome, ${firstName}!</h1>
         </div>
         
         <div class="content">
@@ -125,8 +127,11 @@ export const getFirstTouchEmailTemplate = (lead, settings) => {
             
             <p>${settings.emailNextSteps.replace(/\\n/g, '<br>')}</p>
             
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}" class="cta-button">Contact Us on WhatsApp</a>
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}" class="cta-button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width="20" height="20" style="vertical-align: middle; margin-right: 8px; border: none;" />
+                    <span style="vertical-align: middle;">Contact Us on WhatsApp</span>
+                </a>
             </div>
             
             <div class="divider"></div>

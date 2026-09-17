@@ -91,7 +91,7 @@ export const sendFirstTouchEmail = async (lead) => {
     // Email options
     const mailOptions = {
       from: {
-        name: process.env.EMAIL_FROM_NAME || 'Your Company',
+        name: process.env.EMAIL_FROM_NAME || settings.companyName || 'Dack Credit Services',
         address: process.env.EMAIL_FROM
       },
       to: lead.email,
