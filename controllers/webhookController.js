@@ -26,21 +26,24 @@ export const receiveLead = async (req, res) => {
     const existingLead = await Lead.findOne({ email: validation.data.email });
     
     if (existingLead) {
-      // Update existing lead instead of creating duplicate
-      existingLead.name = validation.data.name;
-      existingLead.phone = validation.data.phone;
-      if (validation.data.source) {
-        existingLead.source = validation.data.source;
+      // Ignore creation but append to duplicateSubmissions array to track
+      if (!existingLead.duplicateSubmissions) {
+        existingLead.duplicateSubmissions = [];
       }
+      existingLead.duplicateSubmissions.push(new Date());
+      
+      // Optionally update name/phone if they provided new ones, or keep original.
+      // We will keep the original but update the interaction history.
       
       await existingLead.save();
       
-      console.log(`Lead updated: ${existingLead.email} (ID: ${existingLead._id})`);
+      console.log(`Duplicate submission tracked: ${existingLead.email} (ID: ${existingLead._id})`);
       
       return res.status(200).json({
         success: true,
-        message: 'Lead updated successfully',
-        leadId: existingLead._id
+        message: 'Duplicate lead tracked successfully',
+        leadId: existingLead._id,
+        isDuplicate: true
       });
     }
     

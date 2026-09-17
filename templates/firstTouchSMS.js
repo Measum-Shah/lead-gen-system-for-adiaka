@@ -16,7 +16,7 @@ export const getFirstTouchSMSTemplate = (lead) => {
   
   // Keep it short and professional
   // Total: ~140 characters (within single SMS limit)
-  return `Hi ${firstName}! Thanks for your interest. We've received your inquiry and will contact you within 24 hours. - Your Company Team`;
+  return `Hi ${firstName}! Thanks for your interest. We've received your inquiry and will contact you within 24 hours. - Dack Credit Services`;
 };
 
 /**
@@ -27,7 +27,7 @@ export const getSMSTemplates = {
   // Standard first touch (default)
   standard: (lead) => {
     const firstName = lead.name.split(' ')[0];
-    return `Hi ${firstName}! Thanks for your interest. We've received your inquiry and will contact you within 24 hours. - Your Company Team`;
+    return `Hi ${firstName}! Thanks for your interest. We've received your inquiry and will contact you within 24 hours. - Dack Credit Services`;
   },
   
   // Urgent response template
@@ -39,19 +39,19 @@ export const getSMSTemplates = {
   // After-hours template
   afterHours: (lead) => {
     const firstName = lead.name.split(' ')[0];
-    return `Hi ${firstName}! Thanks for reaching out. We're currently closed but will respond first thing in the morning. - Your Company`;
+    return `Hi ${firstName}! Thanks for reaching out. We're currently closed but will respond first thing in the morning. - Dack Credit Services`;
   },
   
   // VIP/High-value lead template
   vip: (lead) => {
     const firstName = lead.name.split(' ')[0];
-    return `Hi ${firstName}! Thank you for your interest. A senior team member will personally reach out to you shortly. - Your Company`;
+    return `Hi ${firstName}! Thank you for your interest. A senior team member will personally reach out to you shortly. - Dack Credit Services`;
   },
   
   // Specific service inquiry
   serviceSpecific: (lead, serviceName) => {
     const firstName = lead.name.split(' ')[0];
-    return `Hi ${firstName}! Thanks for your interest in ${serviceName}. We'll send you detailed information shortly. - Your Company`;
+    return `Hi ${firstName}! Thanks for your interest in ${serviceName}. We'll send you detailed information shortly. - Dack Credit Services`;
   }
 };
 

@@ -329,9 +329,43 @@ export const getLeadsStats = async (req, res) => {
     
   } catch (error) {
     console.error('Error fetching leads statistics:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
-      message: 'Error fetching statistics',
+      message: 'Error fetching lead statistics'
+    });
+  }
+};
+
+/**
+ * Delete a specific lead
+ * 
+ * @route DELETE /api/leads/:id
+ * @access Protected
+ */
+export const deleteLead = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    const lead = await Lead.findById(id);
+    
+    if (!lead) {
+      return res.status(404).json({
+        success: false,
+        message: 'Lead not found'
+      });
+    }
+    
+    await Lead.findByIdAndDelete(id);
+    
+    return res.status(200).json({
+      success: true,
+      message: 'Lead deleted successfully'
+    });
+  } catch (error) {
+    console.error('Error deleting lead:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Error deleting lead',
       ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
   }

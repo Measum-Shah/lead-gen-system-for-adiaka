@@ -75,10 +75,18 @@ export const sendFirstTouchEmail = async (lead) => {
     if (!lead || !lead.email || !lead.name) {
       throw new Error('Invalid lead object. Email and name are required.');
     }
+
+    // Fetch dynamic template settings from DB
+    const Settings = (await import('../models/Settings.js')).default;
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = new Settings();
+      await settings.save();
+    }
     
-    // Get email templates
-    const htmlContent = getFirstTouchEmailTemplate(lead);
-    const textContent = getFirstTouchEmailText(lead);
+    // Get email templates using dynamic settings
+    const htmlContent = getFirstTouchEmailTemplate(lead, settings);
+    const textContent = getFirstTouchEmailText(lead, settings);
     
     // Email options
     const mailOptions = {
@@ -186,8 +194,50 @@ export const sendTestEmail = async (testEmail) => {
   }
 };
 
+/**
+ * Send Follow-Up Email
+ */
+export const sendFollowUpEmail = async (lead, day) => {
+  try {
+    const Settings = (await import('../models/Settings.js')).default;
+    let settings = await Settings.findOne();
+    if (!settings) {
+      settings = new Settings();
+      await settings.save();
+    }
+    
+    const { getFollowUpEmailTemplate, getFollowUpEmailText } = await import('../templates/followUpEmails.js');
+    
+    const htmlContent = getFollowUpEmailTemplate(lead, settings, day);
+    const textContent = getFollowUpEmailText(lead, settings, day);
+    const subject = day === 1 ? settings.day1EmailSubject : settings.day3EmailSubject;
+    
+    const mailOptions = {
+      from: {
+        name: process.env.EMAIL_FROM_NAME || settings.companyName,
+        address: process.env.EMAIL_FROM
+      },
+      to: lead.email,
+      subject: subject,
+      html: htmlContent,
+      text: textContent
+    };
+    
+    const transport = getTransporter();
+    const info = await transport.sendMail(mailOptions);
+    
+    console.log(`✓ Day ${day} Follow-Up Email sent to ${lead.email} (Message ID: ${info.messageId})`);
+    return { success: true };
+    
+  } catch (error) {
+    console.error(`✗ Failed to send Day ${day} Follow-Up to ${lead.email}:`, error.message);
+    return { success: false, error: error.message };
+  }
+};
+
 export default {
   sendFirstTouchEmail,
   sendTestEmail,
-  verifyEmailConnection
+  verifyEmailConnection,
+  sendFollowUpEmail
 };

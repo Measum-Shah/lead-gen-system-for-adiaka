@@ -65,11 +65,17 @@ app.get('/api/health', (req, res) => {
 import webhookRoutes from './routes/webhook.js';
 import leadsRoutes from './routes/leads.js';
 import authRoutes from './routes/auth.js';
+import settingsRoutes from './routes/settings.js';
+import { initCronJobs } from './cron/followUpCron.js';
 
 // Mount routes
 app.use('/api/webhook', webhookRoutes);
 app.use('/api/leads', leadsRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/settings', settingsRoutes);
+
+// Initialize Cron Jobs
+initCronJobs();
 
 // Error handling middleware
 app.use((err, req, res, next) => {

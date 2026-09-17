@@ -5,7 +5,8 @@ import {
   getLeadsStats,
   updateLeadStatus,
   exportLeadsToExcel,
-  resendNotifications
+  resendNotifications,
+  deleteLead
 } from '../controllers/leadsController.js';
 import requireAuth from '../middleware/requireAuth.js';
 
@@ -54,9 +55,16 @@ router.patch('/:id/status', updateLeadStatus);
 
 /**
  * @route   POST /api/leads/:id/resend
- * @desc    Resend first-touch notifications
+ * @desc    Resend failed notifications
  * @access  Protected (requires JWT)
  */
 router.post('/:id/resend', resendNotifications);
+
+/**
+ * @route   DELETE /api/leads/:id
+ * @desc    Delete a lead
+ * @access  Protected (requires JWT)
+ */
+router.delete('/:id', deleteLead);
 
 export default router;

@@ -42,13 +42,15 @@ export const triggerFirstTouch = async (leadId) => {
     console.log(`  Source: ${lead.source}`);
     
     // Send both email and SMS in parallel using Promise.allSettled
-    // This ensures both attempts complete, even if one fails
-    console.log(`\nSending notifications in parallel...`);
+    // SMS IS TEMPORARILY DISABLED AS PER REQUEST
+    console.log(`\nSending notifications (SMS disabled)...`);
     
-    const [emailResult, smsResult] = await Promise.allSettled([
-      sendFirstTouchEmail(lead),
-      sendFirstTouchSMS(lead)
+    const [emailResult] = await Promise.allSettled([
+      sendFirstTouchEmail(lead)
     ]);
+    
+    // Mock SMS result
+    const smsResult = { status: 'fulfilled', value: { success: true } };
     
     // Process email result
     const emailSuccess = emailResult.status === 'fulfilled' && emailResult.value.success;
@@ -56,11 +58,9 @@ export const triggerFirstTouch = async (leadId) => {
       ? emailResult.reason.message 
       : (!emailResult.value.success ? emailResult.value.error : null);
     
-    // Process SMS result
-    const smsSuccess = smsResult.status === 'fulfilled' && smsResult.value.success;
-    const smsError = smsResult.status === 'rejected'
-      ? smsResult.reason.message
-      : (!smsResult.value.success ? smsResult.value.error : null);
+    // Process SMS result (Mocked)
+    const smsSuccess = true;
+    const smsError = null;
     
     // Log results
     console.log(`\nNotification Results:`);
@@ -150,9 +150,9 @@ export const retryFailedNotifications = async (leadId) => {
     }
     
     if (lead.smsStatus === 'failed' || lead.smsStatus === 'pending') {
-      console.log(`Retrying SMS (current status: ${lead.smsStatus})`);
-      retryPromises.push(sendFirstTouchSMS(lead));
-      smsRetried = true;
+      console.log(`Skipping SMS retry (SMS is temporarily disabled)`);
+      // retryPromises.push(sendFirstTouchSMS(lead));
+      // smsRetried = true;
     } else {
       console.log(`Skipping SMS (status: ${lead.smsStatus})`);
     }

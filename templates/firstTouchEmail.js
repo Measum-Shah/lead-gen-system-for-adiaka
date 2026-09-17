@@ -4,7 +4,7 @@
  * HTML email template sent to new leads as initial contact
  */
 
-export const getFirstTouchEmailTemplate = (lead) => {
+export const getFirstTouchEmailTemplate = (lead, settings) => {
   const firstName = lead.name.split(' ')[0]; // Get first name
   
   return `
@@ -116,45 +116,40 @@ export const getFirstTouchEmailTemplate = (lead) => {
         <div class="content">
             <p>Hi ${firstName},</p>
             
-            <p>Thank you for reaching out to us! We've received your inquiry and we're excited to connect with you.</p>
+            <p>${settings.emailGreeting.replace(/\\n/g, '<br>')}</p>
             
             <div class="highlight-box">
                 <p><strong>What happens next?</strong></p>
-                <p>Our team will review your information and get back to you within 24 hours. We're here to answer any questions you may have and help you find the perfect solution.</p>
+                <p>${settings.emailBody.replace(/\\n/g, '<br>')}</p>
             </div>
             
-            <p>In the meantime, feel free to:</p>
-            <ul style="margin: 16px 0; padding-left: 20px;">
-                <li style="margin-bottom: 8px;">Visit our website to learn more about our services</li>
-                <li style="margin-bottom: 8px;">Check out our FAQs for quick answers</li>
-                <li style="margin-bottom: 8px;">Follow us on social media for updates and tips</li>
-            </ul>
+            <p>${settings.emailNextSteps.replace(/\\n/g, '<br>')}</p>
             
             <div style="text-align: center; margin: 30px 0;">
-                <a href="https://your-website.com" class="cta-button">Visit Our Website</a>
+                <a href="https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}" class="cta-button">Contact Us on WhatsApp</a>
             </div>
             
             <div class="divider"></div>
             
             <p style="font-size: 14px; color: #666666;">
                 <strong>Need immediate assistance?</strong><br>
-                You can reply directly to this email or call us at <a href="tel:+923001234567" style="color: #667eea; text-decoration: none;">+92 300 1234567</a>
+                You can reply directly to this email or call us at <a href="tel:${settings.supportPhone.replace(/\\s/g, '')}" style="color: #667eea; text-decoration: none;">${settings.supportPhone}</a>
             </p>
             
             <p style="margin-top: 30px;">
-                Best regards,<br>
-                <strong>The Team</strong>
+                ${settings.footerSignature.replace(/\n/g, '<br>')}<br>
+                <strong>${settings.companyName} Team</strong>
             </p>
         </div>
         
         <div class="footer">
             <p style="margin: 0 0 10px 0;">
-                <strong>Your Company Name</strong>
+                <strong>${settings.companyName}</strong>
             </p>
             <p style="margin: 0 0 10px 0;">
-                123 Business Street, City, Country<br>
-                <a href="mailto:info@yourcompany.com">info@yourcompany.com</a> | 
-                <a href="tel:+923001234567">+92 300 1234567</a>
+                ${settings.companyAddress}<br>
+                <a href="mailto:${settings.supportEmail}">${settings.supportEmail}</a> | 
+                <a href="tel:${settings.supportPhone.replace(/\\s/g, '')}">${settings.supportPhone}</a>
             </p>
             <p style="margin: 20px 0 0 0; font-size: 12px; color: #999999;">
                 You're receiving this email because you submitted a contact form on our website.<br>
@@ -171,37 +166,35 @@ export const getFirstTouchEmailTemplate = (lead) => {
 /**
  * Get plain text version of the email (fallback for email clients that don't support HTML)
  */
-export const getFirstTouchEmailText = (lead) => {
+export const getFirstTouchEmailText = (lead, settings) => {
   const firstName = lead.name.split(' ')[0];
   
-  return `
-Welcome, ${firstName}!
+  return \`
+Welcome, \${firstName}!
 
-Hi ${firstName},
+Hi \${firstName},
 
-Thank you for reaching out to us! We've received your inquiry and we're excited to connect with you.
+\${settings.emailGreeting}
 
 WHAT HAPPENS NEXT?
-Our team will review your information and get back to you within 24 hours. We're here to answer any questions you may have and help you find the perfect solution.
+\${settings.emailBody}
 
-In the meantime, feel free to:
-- Visit our website to learn more about our services
-- Check out our FAQs for quick answers
-- Follow us on social media for updates and tips
+\${settings.emailNextSteps}
 
-Visit Our Website: https://your-website.com
+Contact Us on WhatsApp: https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}
 
 NEED IMMEDIATE ASSISTANCE?
-You can reply directly to this email or call us at +92 300 1234567
+You can reply directly to this email or call us at \${settings.supportPhone}
 
-Best regards,
-The Team
+\${settings.footerSignature}
+\${settings.companyName} Team
 
 ---
-Your Company Name
-123 Business Street, City, Country
-info@yourcompany.com | +92 300 1234567
+\${settings.companyName}
+\${settings.companyAddress}
+\${settings.supportEmail} | \${settings.supportPhone}
 
 You're receiving this email because you submitted a contact form on our website.
-  `.trim();
+  \`.trim();
 };
+

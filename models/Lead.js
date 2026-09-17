@@ -41,7 +41,10 @@ const leadSchema = new mongoose.Schema(
     firstTouchSentAt: {
       type: Date,
       default: null
-    }
+    },
+    duplicateSubmissions: [{
+      type: Date
+    }]
   },
   {
     timestamps: true
