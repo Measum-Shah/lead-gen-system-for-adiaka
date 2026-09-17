@@ -150,23 +150,23 @@ export const getFollowUpEmailText = (lead, settings, day) => {
     nextSteps = settings.day3EmailNextSteps;
   }
   
-  return \`
-Hi \${firstName},
+  return `
+Hi ${firstName},
 
-\${greeting}
+${greeting}
 
-\${body}
+${body}
 
-\${nextSteps}
+${nextSteps}
 
-Contact Us on WhatsApp: https://wa.me/\${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}
+Contact Us on WhatsApp: https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}
 
-\${settings.footerSignature}
-\${settings.companyName} Team
+${settings.footerSignature}
+${settings.companyName} Team
 
 ---
-\${settings.companyName}
-\${settings.companyAddress}
-\${settings.supportEmail} | \${settings.supportPhone}
-  \`.trim();
+${settings.companyName}
+${settings.companyAddress}
+${settings.supportEmail} | ${settings.supportPhone}
+  `.trim();
 };

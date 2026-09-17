@@ -169,32 +169,31 @@ export const getFirstTouchEmailTemplate = (lead, settings) => {
 export const getFirstTouchEmailText = (lead, settings) => {
   const firstName = lead.name.split(' ')[0];
   
-  return \`
-Welcome, \${firstName}!
+  return `
+Welcome, ${firstName}!
 
-Hi \${firstName},
+Hi ${firstName},
 
-\${settings.emailGreeting}
+${settings.emailGreeting}
 
 WHAT HAPPENS NEXT?
-\${settings.emailBody}
+${settings.emailBody}
 
-\${settings.emailNextSteps}
+${settings.emailNextSteps}
 
 Contact Us on WhatsApp: https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}
 
 NEED IMMEDIATE ASSISTANCE?
-You can reply directly to this email or call us at \${settings.supportPhone}
+You can reply directly to this email or call us at ${settings.supportPhone}
 
-\${settings.footerSignature}
-\${settings.companyName} Team
+${settings.footerSignature}
+${settings.companyName} Team
 
 ---
-\${settings.companyName}
-\${settings.companyAddress}
-\${settings.supportEmail} | \${settings.supportPhone}
+${settings.companyName}
+${settings.companyAddress}
+${settings.supportEmail} | ${settings.supportPhone}
 
 You're receiving this email because you submitted a contact form on our website.
-  \`.trim();
+  `.trim();
 };
-
