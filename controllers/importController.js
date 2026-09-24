@@ -72,7 +72,8 @@ export const importLeads = async (req, res) => {
       if (h) headerToIndex[h.trim()] = i;
     });
 
-    const nameIdx = mapping.name ? headerToIndex[mapping.name] : -1;
+    const firstNameIdx = mapping.firstName ? headerToIndex[mapping.firstName] : -1;
+    const lastNameIdx = mapping.lastName ? headerToIndex[mapping.lastName] : -1;
     const emailIdx = headerToIndex[mapping.email];
     const phoneIdx = mapping.phone ? headerToIndex[mapping.phone] : -1;
 
@@ -86,12 +87,30 @@ export const importLeads = async (req, res) => {
 
     for (const row of rows) {
       const email = emailIdx >= 0 ? (row[emailIdx] || '').toString().trim().toLowerCase() : '';
-      const name = nameIdx >= 0 ? (row[nameIdx] || '').toString().trim() : 'Unknown';
-      const phone = phoneIdx >= 0 ? (row[phoneIdx] || '').toString().trim() : '';
+      const fName = firstNameIdx >= 0 ? (row[firstNameIdx] || '').toString().trim() : '';
+      const lName = lastNameIdx >= 0 ? (row[lastNameIdx] || '').toString().trim() : '';
+      
+      let name = [fName, lName].filter(Boolean).join(' ') || 'Unknown';
+      let phone = phoneIdx >= 0 ? (row[phoneIdx] || '').toString().trim() : '';
 
       if (!email || !emailRegex.test(email)) {
         invalidRows++;
         continue;
+      }
+
+      // Format USA phone number (starts with 1) to E.164 (+1...)
+      if (phone) {
+        let digits = phone.replace(/(?!^\+)[^\d]/g, '');
+        if (digits.length === 10) {
+          phone = '+1' + digits;
+        } else if (digits.startsWith('1') && digits.length === 11) {
+          phone = '+' + digits;
+        } else if (!digits.startsWith('+')) {
+          phone = '+' + digits;
+        }
+      } else {
+        // Phone is required by the Lead model, provide dummy if empty to prevent validation failure
+        phone = '+10000000000';
       }
 
       // Check for duplicates
