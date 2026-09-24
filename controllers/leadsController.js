@@ -32,7 +32,8 @@ export const getCampaignStats = async (req, res) => {
       quota: {
         used: quota ? quota.count : 0,
         limit,
-        importedUsed: quota ? quota.importedCount : 0
+        importedUsed: quota ? quota.importedCount : 0,
+        importedLimit: process.env.IMPORTED_DAILY_CAP ? parseInt(process.env.IMPORTED_DAILY_CAP) : null
       },
       pending: pendingCounts
     });
