@@ -1,5 +1,46 @@
 import Lead from '../models/Lead.js';
+import Quota from '../models/Quota.js';
 import { validateLeadStatus, validateDate } from '../utils/validation.js';
+
+export const getCampaignStats = async (req, res) => {
+  try {
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    
+    const quota = await Quota.findOne({ date: today });
+    const limit = parseInt(process.env.DAILY_EMAIL_CAP || '100');
+    
+    // Count pending by status
+    const pendingAggregation = await Lead.aggregate([
+      { $match: { unsubscribed: false, campaignStatus: { $in: ['instant_pending', 'followup1_pending', 'followup2_pending'] } } },
+      { $group: { _id: { type: "$leadType", status: "$campaignStatus" }, count: { $sum: 1 } } }
+    ]);
+    
+    const pendingCounts = {
+      website: { instant_pending: 0, followup1_pending: 0, followup2_pending: 0 },
+      imported: { instant_pending: 0, followup1_pending: 0, followup2_pending: 0 }
+    };
+    
+    pendingAggregation.forEach(item => {
+      if (pendingCounts[item._id.type]) {
+        pendingCounts[item._id.type][item._id.status] = item.count;
+      }
+    });
+
+    res.json({
+      success: true,
+      quota: {
+        used: quota ? quota.count : 0,
+        limit,
+        importedUsed: quota ? quota.importedCount : 0
+      },
+      pending: pendingCounts
+    });
+  } catch (error) {
+    console.error('Error fetching campaign stats:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch campaign stats' });
+  }
+};
 
 /**
  * Leads Controller

@@ -20,4 +20,7 @@ const router = express.Router();
  */
 router.post('/lead', verifyWebhookSecret, receiveLead);
 
+import { mailgunWebhook } from '../controllers/webhookController.js';
+router.post('/mailgun', mailgunWebhook);
+
 export default router;

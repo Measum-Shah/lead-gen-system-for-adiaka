@@ -44,6 +44,39 @@ const leadSchema = new mongoose.Schema(
     },
     duplicateSubmissions: [{
       type: Date
+    }],
+    
+    // --- NEW CAMPAIGN / IMPORT FIELDS ---
+    leadType: {
+      type: String,
+      enum: ['website', 'imported'],
+      default: 'website'
+    },
+    campaignStatus: {
+      type: String,
+      enum: [
+        'new', 'instant_pending', 'instant_sent',
+        'followup1_pending', 'followup1_sent',
+        'followup2_pending', 'followup2_sent',
+        'completed', 'unsubscribed', 'bounced'
+      ],
+      default: 'new'
+    },
+    importedAt: Date,
+    instantSentAt: Date,
+    followup1DueAt: Date,
+    followup1SentAt: Date,
+    followup2DueAt: Date,
+    followup2SentAt: Date,
+    unsubscribed: {
+      type: Boolean,
+      default: false
+    },
+    emailLog: [{
+      stage: String,
+      sentAt: Date,
+      mailgunMessageId: String,
+      status: String
     }]
   },
   {
@@ -56,6 +89,8 @@ leadSchema.index({ createdAt: -1 });
 leadSchema.index({ email: 1 });
 leadSchema.index({ status: 1 });
 leadSchema.index({ source: 1 });
+leadSchema.index({ campaignStatus: 1, unsubscribed: 1, followup1DueAt: 1, followup2DueAt: 1 });
+leadSchema.index({ leadType: 1 });
 
 // Virtual for formatted creation date
 leadSchema.virtual('formattedCreatedAt').get(function() {

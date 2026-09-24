@@ -48,7 +48,11 @@ export const receiveLead = async (req, res) => {
     }
     
     // Create new lead
-    const lead = new Lead(validation.data);
+    const lead = new Lead({
+      ...validation.data,
+      leadType: 'website',
+      campaignStatus: 'instant_pending'
+    });
     await lead.save();
     
     console.log(`New lead created: ${lead.email} (ID: ${lead._id})`);
@@ -60,17 +64,39 @@ export const receiveLead = async (req, res) => {
       leadId: lead._id
     });
     
-    // Trigger first-touch notifications asynchronously (fire and forget)
-    // This will be implemented in Task 7, but we'll import it here
-    // Import dynamically to avoid circular dependency issues
+    // Trigger first-touch synchronously but in the background
     setImmediate(async () => {
       try {
-        // Dynamic import to be added after notification service is created
-        const { triggerFirstTouch } = await import('../services/notify.js');
-        await triggerFirstTouch(lead._id);
-        console.log(`First-touch notifications triggered for lead: ${lead._id}`);
+        const { consumeQuota } = await import('../services/quotaManager.js');
+        const hasQuota = await consumeQuota(false); // website lead
+
+        if (hasQuota) {
+          const { sendFirstTouchEmail } = await import('../services/emailService.js');
+          const emailResult = await sendFirstTouchEmail(lead);
+
+          if (emailResult.success) {
+            const twoDays = new Date();
+            twoDays.setDate(twoDays.getDate() + 2);
+
+            lead.campaignStatus = 'followup1_pending';
+            lead.instantSentAt = new Date();
+            lead.followup1DueAt = twoDays;
+            
+            lead.emailLog = lead.emailLog || [];
+            lead.emailLog.push({
+              stage: 'instant_sent',
+              sentAt: new Date(),
+              mailgunMessageId: emailResult.messageId || 'unknown',
+              status: 'delivered'
+            });
+
+            await lead.save();
+            console.log(`First-touch notification sent for lead: ${lead._id}`);
+          }
+        } else {
+          console.log(`Daily quota hit. Lead ${lead._id} queued as instant_pending.`);
+        }
       } catch (error) {
-        // Log error but don't crash - notification failure shouldn't affect lead creation
         console.error(`Failed to trigger notifications for lead ${lead._id}:`, error.message);
       }
     });
@@ -102,5 +128,32 @@ export const receiveLead = async (req, res) => {
       message: 'Error processing lead submission',
       ...(process.env.NODE_ENV === 'development' && { error: error.message })
     });
+  }
+};
+
+/**
+ * Handle Mailgun bounce/failure webhooks
+ * @route POST /api/webhook/mailgun
+ */
+export const mailgunWebhook = async (req, res) => {
+  try {
+    const eventData = req.body['event-data'];
+    if (!eventData) return res.status(400).send('Invalid webhook payload');
+
+    const email = eventData.recipient;
+    const eventType = eventData.event;
+
+    if (eventType === 'failed' || eventType === 'bounced') {
+      await Lead.updateMany(
+        { email: email },
+        { $set: { campaignStatus: 'bounced' } }
+      );
+      console.log(`Mailgun bounce recorded for: ${email}`);
+    }
+
+    res.status(200).send('OK');
+  } catch (error) {
+    console.error('Mailgun webhook error:', error);
+    res.status(500).send('Error');
   }
 };
