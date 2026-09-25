@@ -10,6 +10,14 @@ const quotaSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  massCount: {
+    type: Number,
+    default: 0
+  },
+  websiteCount: {
+    type: Number,
+    default: 0
+  },
   importedCount: {
     type: Number,
     default: 0

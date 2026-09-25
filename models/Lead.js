@@ -58,7 +58,8 @@ const leadSchema = new mongoose.Schema(
         'new', 'instant_pending', 'instant_sent',
         'followup1_pending', 'followup1_sent',
         'followup2_pending', 'followup2_sent',
-        'completed', 'unsubscribed', 'bounced'
+        'completed', 'unsubscribed', 'bounced',
+        'imported_idle'
       ],
       default: 'new'
     },
@@ -72,6 +73,10 @@ const leadSchema = new mongoose.Schema(
       type: Boolean,
       default: false
     },
+    broadcastsReceived: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Broadcast'
+    }],
     emailLog: [{
       stage: String,
       sentAt: Date,

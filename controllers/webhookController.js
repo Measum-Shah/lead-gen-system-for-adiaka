@@ -68,7 +68,12 @@ export const receiveLead = async (req, res) => {
     setImmediate(async () => {
       try {
         const { consumeQuota } = await import('../services/quotaManager.js');
-        const hasQuota = await consumeQuota(false); // website lead
+        const Broadcast = (await import('../models/Broadcast.js')).default;
+        
+        const activeBroadcast = await Broadcast.findOne({ status: 'active' });
+        const massIsActive = !!activeBroadcast;
+        
+        const hasQuota = await consumeQuota('website', massIsActive);
 
         if (hasQuota) {
           const { sendFirstTouchEmail } = await import('../services/emailService.js');

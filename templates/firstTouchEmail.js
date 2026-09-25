@@ -116,16 +116,9 @@ export const getFirstTouchEmailTemplate = (lead, settings) => {
         </div>
         
         <div class="content">
-            <p>Hi ${firstName},</p>
-            
-            <p>${settings.emailGreeting.replace(/\\n/g, '<br>')}</p>
-            
-            <div class="highlight-box">
-                <p><strong>What happens next?</strong></p>
-                <p>${settings.emailBody.replace(/\\n/g, '<br>')}</p>
+            <div class="email-body">
+                ${(settings.emailBody || '').replace(/{{name}}/g, firstName)}
             </div>
-            
-            <p>${settings.emailNextSteps.replace(/\\n/g, '<br>')}</p>
             
             <div style="text-align: center; margin: 32px 0;">
                 <a href="https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}" class="cta-button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
@@ -174,24 +167,20 @@ export const getFirstTouchEmailTemplate = (lead, settings) => {
 export const getFirstTouchEmailText = (lead, settings) => {
   const firstName = lead.name.split(' ')[0];
   
+  const rawBody = (settings.emailBody || '').replace(/{{name}}/g, firstName);
+  const plainTextBody = rawBody.replace(/<[^>]*>?/gm, '');
+  
   return `
 Welcome, ${firstName}!
 
-Hi ${firstName},
-
-${settings.emailGreeting}
-
-WHAT HAPPENS NEXT?
-${settings.emailBody}
-
-${settings.emailNextSteps}
+${plainTextBody}
 
 Contact Us on WhatsApp: https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}
 
 NEED IMMEDIATE ASSISTANCE?
 You can reply directly to this email or call us at ${settings.supportPhone}
 
-${settings.footerSignature}
+${settings.footerSignature.replace(/\\n/g, '\n')}
 ${settings.companyName} Team
 
 ---

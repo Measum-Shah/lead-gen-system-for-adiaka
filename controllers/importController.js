@@ -126,9 +126,8 @@ export const importLeads = async (req, res) => {
         email,
         phone,
         leadType: 'imported',
-        campaignStatus: 'followup1_pending',
-        importedAt: new Date(),
-        followup1DueAt: twoDaysFromNow
+        campaignStatus: 'imported_idle',
+        importedAt: new Date()
       });
       await newLead.save();
       imported++;

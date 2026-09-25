@@ -235,9 +235,40 @@ export const sendFollowUpEmail = async (lead, day) => {
   }
 };
 
+/**
+ * Send generic email (for broadcasts)
+ */
+export const sendEmail = async (to, subject, htmlContent) => {
+  try {
+    const Settings = (await import('../models/Settings.js')).default;
+    let settings = await Settings.findOne();
+    if (!settings) settings = new Settings();
+
+    const mailOptions = {
+      from: {
+        name: process.env.EMAIL_FROM_NAME || settings.companyName,
+        address: process.env.EMAIL_FROM
+      },
+      to,
+      subject,
+      html: htmlContent
+    };
+    
+    const transport = getTransporter();
+    const info = await transport.sendMail(mailOptions);
+    
+    console.log(`✓ Email sent to ${to} (Message ID: ${info.messageId})`);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error(`✗ Failed to send email to ${to}:`, error.message);
+    return { success: false, error: error.message };
+  }
+};
+
 export default {
   sendFirstTouchEmail,
   sendTestEmail,
   verifyEmailConnection,
-  sendFollowUpEmail
+  sendFollowUpEmail,
+  sendEmail
 };

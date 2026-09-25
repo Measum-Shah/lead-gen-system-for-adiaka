@@ -91,17 +91,13 @@ const baseEmailStyle = `
 export const getFollowUpEmailTemplate = (lead, settings, day) => {
   const firstName = lead.name.split(' ')[0];
   
-  let subject, greeting, body, nextSteps;
+  let subject, body;
   if (day === 1) {
     subject = settings.day1EmailSubject;
-    greeting = settings.day1EmailGreeting;
     body = settings.day1EmailBody;
-    nextSteps = settings.day1EmailNextSteps;
   } else if (day === 3) {
     subject = settings.day3EmailSubject;
-    greeting = settings.day3EmailGreeting;
     body = settings.day3EmailBody;
-    nextSteps = settings.day3EmailNextSteps;
   }
 
   const html = `
@@ -120,10 +116,9 @@ export const getFollowUpEmailTemplate = (lead, settings, day) => {
         </div>
         
         <div class="content">
-            <p>Hi ${firstName},</p>
-            <p>${greeting.replace(/\\n/g, '<br>')}</p>
-            <p>${body.replace(/\\n/g, '<br>')}</p>
-            <p>${nextSteps.replace(/\\n/g, '<br>')}</p>
+            <div class="email-body">
+                ${(body || '').replace(/{{name}}/g, firstName)}
+            </div>
             
             <div style="text-align: center; margin: 32px 0;">
                 <a href="https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}" class="cta-button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
@@ -135,7 +130,7 @@ export const getFollowUpEmailTemplate = (lead, settings, day) => {
             <div class="divider"></div>
             
             <p style="margin-top: 30px;">
-                ${settings.footerSignature.replace(/\\n/g, '<br>')}<br>
+                ${(settings.footerSignature || '').replace(/\\n/g, '<br>')}<br>
                 <strong>${settings.companyName} Team</strong>
             </p>
         </div>
@@ -147,7 +142,7 @@ export const getFollowUpEmailTemplate = (lead, settings, day) => {
             <p style="margin: 0 0 10px 0;">
                 ${settings.companyAddress}<br>
                 <a href="mailto:${settings.supportEmail}">${settings.supportEmail}</a> | 
-                <a href="tel:${settings.supportPhone.replace(/\\s/g, '')}">${settings.supportPhone}</a>
+                <a href="tel:${(settings.supportPhone || '').replace(/\\s/g, '')}">${settings.supportPhone}</a>
             </p>
         </div>
     </div>
@@ -161,36 +156,29 @@ export const getFollowUpEmailTemplate = (lead, settings, day) => {
 export const getFollowUpEmailText = (lead, settings, day) => {
   const firstName = lead.name.split(' ')[0];
   
-  let subject, greeting, body, nextSteps;
+  let subject, body;
   if (day === 1) {
     subject = settings.day1EmailSubject;
-    greeting = settings.day1EmailGreeting;
     body = settings.day1EmailBody;
-    nextSteps = settings.day1EmailNextSteps;
   } else if (day === 3) {
     subject = settings.day3EmailSubject;
-    greeting = settings.day3EmailGreeting;
     body = settings.day3EmailBody;
-    nextSteps = settings.day3EmailNextSteps;
   }
   
-  return `
-Hi ${firstName},
+  const rawBody = (body || '').replace(/{{name}}/g, firstName);
+  const plainTextBody = rawBody.replace(/<[^>]*>?/gm, '');
 
-${greeting}
+  return \`
+\${plainTextBody}
 
-${body}
+Contact Us on WhatsApp: https://wa.me/\${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}
 
-${nextSteps}
-
-Contact Us on WhatsApp: https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}
-
-${settings.footerSignature}
-${settings.companyName} Team
+\${settings.footerSignature.replace(/\\n/g, '\n')}
+\${settings.companyName} Team
 
 ---
-${settings.companyName}
-${settings.companyAddress}
-${settings.supportEmail} | ${settings.supportPhone}
-  `.trim();
+\${settings.companyName}
+\${settings.companyAddress}
+\${settings.supportEmail} | \${settings.supportPhone}
+  \`.trim();
 };
