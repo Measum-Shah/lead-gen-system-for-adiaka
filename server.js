@@ -61,11 +61,17 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+import path from 'path';
+
+// Serve uploaded images statically
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
 // Import routes
 import webhookRoutes from './routes/webhook.js';
 import leadsRoutes from './routes/leads.js';
 import authRoutes from './routes/auth.js';
 import settingsRoutes from './routes/settings.js';
+import uploadRoutes from './routes/upload.js';
 import { initCampaignCron } from './cron/campaignCron.js';
 
 // Mount routes
@@ -73,6 +79,7 @@ app.use('/api/webhook', webhookRoutes);
 app.use('/api/leads', leadsRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Initialize Cron Jobs
 initCampaignCron();

@@ -44,6 +44,87 @@ export const getCampaignStats = async (req, res) => {
 };
 
 /**
+ * Send custom email to specific selected lead(s)
+ */
+export const specificSend = async (req, res) => {
+  try {
+    const { leadIds, subject, body } = req.body;
+
+    if (!leadIds || !Array.isArray(leadIds) || leadIds.length === 0) {
+      return res.status(400).json({ success: false, message: 'Please select at least one lead' });
+    }
+    if (!subject || !body) {
+      return res.status(400).json({ success: false, message: 'Subject and email body are required' });
+    }
+
+    const { sendEmail } = await import('../services/emailService.js');
+    const { consumeQuota, refundQuota } = await import('../services/quotaManager.js');
+
+    const leads = await Lead.find({ _id: { $in: leadIds } });
+    if (!leads.length) {
+      return res.status(404).json({ success: false, message: 'No matching leads found' });
+    }
+
+    let sent = 0;
+    let failed = 0;
+    let quotaExceeded = false;
+
+    for (const lead of leads) {
+      if (lead.unsubscribed || lead.campaignStatus === 'bounced') {
+        failed++;
+        continue;
+      }
+
+      const hasQuota = await consumeQuota('website', false);
+      if (!hasQuota) {
+        quotaExceeded = true;
+        break;
+      }
+
+      const firstName = lead.name ? lead.name.split(' ')[0] : 'there';
+      const personalizedBody = body.replace(/{{name}}/g, firstName);
+
+      try {
+        const result = await sendEmail(lead.email, subject, personalizedBody);
+        if (result.success) {
+          sent++;
+          lead.emailLog = lead.emailLog || [];
+          lead.emailLog.push({
+            stage: 'specific_send',
+            sentAt: new Date(),
+            mailgunMessageId: result.messageId || 'unknown',
+            status: 'delivered'
+          });
+          await lead.save();
+        } else {
+          failed++;
+          await refundQuota('website');
+        }
+      } catch (err) {
+        failed++;
+        await refundQuota('website');
+      }
+    }
+
+    res.json({
+      success: true,
+      data: {
+        totalRequested: leadIds.length,
+        sent,
+        failed,
+        quotaExceeded
+      },
+      message: quotaExceeded
+        ? `Sent to ${sent} lead(s). Daily quota limit reached.`
+        : `Successfully sent email to ${sent} lead(s).`
+    });
+  } catch (error) {
+    console.error('Error in specificSend:', error);
+    res.status(500).json({ success: false, message: 'Failed to process specific email sending' });
+  }
+};
+
+/**
  * Leads Controller
  * 
  * Handles all admin operations for lead management:

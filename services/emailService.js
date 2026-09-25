@@ -244,6 +244,54 @@ export const sendEmail = async (to, subject, htmlContent) => {
     let settings = await Settings.findOne();
     if (!settings) settings = new Settings();
 
+    let finalHtml = htmlContent;
+    if (!htmlContent.includes('<html')) {
+      finalHtml = `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${subject}</title>
+    <style>
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; }
+        .email-container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; }
+        .header { background-color: #0f172a; border-bottom: 4px solid #f59e0b; color: #ffffff; padding: 30px; text-align: center; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 600; }
+        .content { padding: 30px; color: #334155; line-height: 1.6; font-size: 16px; }
+        .cta-button { display: inline-block; background-color: #25D366; color: #ffffff; text-decoration: none; padding: 12px 28px; border-radius: 6px; font-weight: 600; margin: 20px 0; font-size: 15px; }
+        .footer { background-color: #f8fafc; padding: 24px; text-align: center; color: #64748b; font-size: 13px; border-top: 1px solid #e2e8f0; }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <h1>${settings.companyName}</h1>
+        </div>
+        <div class="content">
+            ${htmlContent}
+            ${settings.whatsappNumber ? `
+            <div style="text-align: center; margin: 24px 0;">
+                <a href="https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}" class="cta-button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; color: #ffffff;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width="18" height="18" style="vertical-align: middle; margin-right: 6px; border: none;" />
+                    <span style="vertical-align: middle; color: #ffffff;">Contact Us on WhatsApp</span>
+                </a>
+            </div>` : ''}
+            <div style="height: 1px; background-color: #e2e8f0; margin: 24px 0;"></div>
+            <p style="margin: 0; font-size: 14px; color: #64748b;">
+                ${(settings.footerSignature || '').replace(/\\n/g, '<br>')}<br>
+                <strong>${settings.companyName} Team</strong>
+            </p>
+        </div>
+        <div class="footer">
+            <p style="margin: 0 0 8px 0;"><strong>${settings.companyName}</strong></p>
+            <p style="margin: 0;">${settings.companyAddress} | <a href="mailto:${settings.supportEmail}" style="color: #64748b;">${settings.supportEmail}</a></p>
+        </div>
+    </div>
+</body>
+</html>`.trim();
+    }
+
     const mailOptions = {
       from: {
         name: process.env.EMAIL_FROM_NAME || settings.companyName,
@@ -251,7 +299,7 @@ export const sendEmail = async (to, subject, htmlContent) => {
       },
       to,
       subject,
-      html: htmlContent
+      html: finalHtml
     };
     
     const transport = getTransporter();

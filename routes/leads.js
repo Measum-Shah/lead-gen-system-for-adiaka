@@ -4,6 +4,7 @@ import {
   getLeadById,
   getLeadsStats,
   getCampaignStats,
+  specificSend,
   updateLeadStatus,
   exportLeadsToExcel,
   resendNotifications,
@@ -24,6 +25,13 @@ router.use(requireAuth);
  * @access  Protected (requires JWT)
  */
 router.get('/campaign-stats', getCampaignStats);
+
+/**
+ * @route   POST /api/leads/specific-send
+ * @desc    Send custom email to specific selected leads
+ * @access  Protected (requires JWT)
+ */
+router.post('/specific-send', specificSend);
 
 /**
  * @route   GET /api/leads/stats
