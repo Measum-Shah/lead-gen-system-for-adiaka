@@ -329,7 +329,7 @@ export const sendEmail = async (to, subject, htmlContent, recipientName = '') =>
             ${settings.whatsappNumber ? `
             <div style="text-align: center; margin: 24px 0;">
                 <a href="https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}" class="cta-button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; color: #ffffff;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/64px-WhatsApp.svg.png" alt="WhatsApp" width="18" height="18" style="vertical-align: middle; margin-right: 6px; border: none;" />
+                    <img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/whatsapp.png" alt="WhatsApp" width="18" height="18" style="vertical-align: middle; margin-right: 6px; border: none;" />
                     <span style="vertical-align: middle; color: #ffffff;">Contact Us on WhatsApp</span>
                 </a>
             </div>` : ''}

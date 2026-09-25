@@ -122,7 +122,7 @@ export const getFirstTouchEmailTemplate = (lead, settings) => {
             
             <div style="text-align: center; margin: 32px 0;">
                 <a href="https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}" class="cta-button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/64px-WhatsApp.svg.png" alt="WhatsApp" width="20" height="20" style="vertical-align: middle; margin-right: 8px; border: none;" />
+                    <img src="https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/whatsapp.png" alt="WhatsApp" width="20" height="20" style="vertical-align: middle; margin-right: 8px; border: none;" />
                     <span style="vertical-align: middle;">Contact Us on WhatsApp</span>
                 </a>
             </div>
