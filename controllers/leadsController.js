@@ -82,10 +82,11 @@ export const specificSend = async (req, res) => {
       }
 
       const firstName = lead.name ? lead.name.split(' ')[0] : 'there';
-      const personalizedBody = body.replace(/{{name}}/g, firstName);
+      const personalizedSubject = (subject || '').replace(/{{name}}/g, firstName);
+      const personalizedBody = (body || '').replace(/{{name}}/g, firstName);
 
       try {
-        const result = await sendEmail(lead.email, subject, personalizedBody);
+        const result = await sendEmail(lead.email, personalizedSubject, personalizedBody, firstName);
         if (result.success) {
           sent++;
           lead.emailLog = lead.emailLog || [];

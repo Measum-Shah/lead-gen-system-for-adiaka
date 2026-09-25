@@ -62,10 +62,15 @@ const processQueue = async () => {
       
       // Send Mass Email
       try {
+        const firstName = lead.name ? lead.name.split(' ')[0] : 'there';
+        const personalizedSubject = (activeBroadcast.subject || '').replace(/{{name}}/g, firstName);
+        const personalizedBody = (activeBroadcast.body || '').replace(/{{name}}/g, firstName);
+
         const result = await sendEmail(
           lead.email,
-          activeBroadcast.subject,
-          activeBroadcast.body
+          personalizedSubject,
+          personalizedBody,
+          firstName
         );
         
         if (result.success) {

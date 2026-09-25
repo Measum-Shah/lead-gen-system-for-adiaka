@@ -1,6 +1,44 @@
 import nodemailer from 'nodemailer';
+import fs from 'fs';
+import path from 'path';
 import Lead from '../models/Lead.js';
 import { getFirstTouchEmailTemplate, getFirstTouchEmailText } from '../templates/firstTouchEmail.js';
+
+/**
+ * Process HTML for local uploaded images and convert them into CID inline attachments.
+ * This guarantees Gmail, Outlook, Apple Mail display images even when running locally or on ephemeral disks!
+ */
+const processAttachments = (htmlContent) => {
+  const attachments = [];
+  if (!htmlContent) return { html: htmlContent, attachments };
+
+  const imgRegex = /src=["'](?:https?:\/\/[^\/"'>]+)?\/uploads\/([a-zA-Z0-9_\-\.]+)(?:["'])/g;
+  let match;
+  const processedFiles = new Set();
+
+  while ((match = imgRegex.exec(htmlContent)) !== null) {
+    const filename = match[1];
+    if (!processedFiles.has(filename)) {
+      processedFiles.add(filename);
+      const filePath = path.join(process.cwd(), 'uploads', filename);
+      if (fs.existsSync(filePath)) {
+        attachments.push({
+          filename: filename,
+          path: filePath,
+          cid: filename
+        });
+      }
+    }
+  }
+
+  let updatedHtml = htmlContent;
+  for (const att of attachments) {
+    const replacePattern = new RegExp(`src=["'](?:https?:\\/\\/[^\\/"'>]+)?\\/uploads\\/${att.filename}["']`, 'g');
+    updatedHtml = updatedHtml.replace(replacePattern, `src="cid:${att.cid}"`);
+  }
+
+  return { html: updatedHtml, attachments };
+};
 
 /**
  * Email Service
@@ -84,9 +122,14 @@ export const sendFirstTouchEmail = async (lead) => {
       await settings.save();
     }
     
+    const firstName = lead.name ? lead.name.split(' ')[0] : 'there';
+    const rawSubject = settings.emailSubject || 'Thank You for Your Interest - We\'ll Be In Touch Soon!';
+    const personalizedSubject = rawSubject.replace(/{{name}}/g, firstName);
+
     // Get email templates using dynamic settings
     const htmlContent = getFirstTouchEmailTemplate(lead, settings);
     const textContent = getFirstTouchEmailText(lead, settings);
+    const { html: processedHtml, attachments } = processAttachments(htmlContent);
     
     // Email options
     const mailOptions = {
@@ -95,9 +138,10 @@ export const sendFirstTouchEmail = async (lead) => {
         address: process.env.EMAIL_FROM
       },
       to: lead.email,
-      subject: 'Thank You for Your Interest - We\'ll Be In Touch Soon!',
-      html: htmlContent,
+      subject: personalizedSubject,
+      html: processedHtml,
       text: textContent,
+      ...(attachments.length > 0 && { attachments }),
       // Optional: Add reply-to if different from sender
       replyTo: process.env.EMAIL_REPLY_TO || process.env.EMAIL_FROM
     };
@@ -208,9 +252,13 @@ export const sendFollowUpEmail = async (lead, day) => {
     
     const { getFollowUpEmailTemplate, getFollowUpEmailText } = await import('../templates/followUpEmails.js');
     
+    const firstName = lead.name ? lead.name.split(' ')[0] : 'there';
+    const rawSubject = day === 1 ? settings.day1EmailSubject : settings.day3EmailSubject;
+    const personalizedSubject = (rawSubject || '').replace(/{{name}}/g, firstName);
+
     const htmlContent = getFollowUpEmailTemplate(lead, settings, day);
     const textContent = getFollowUpEmailText(lead, settings, day);
-    const subject = day === 1 ? settings.day1EmailSubject : settings.day3EmailSubject;
+    const { html: processedHtml, attachments } = processAttachments(htmlContent);
     
     const mailOptions = {
       from: {
@@ -218,9 +266,10 @@ export const sendFollowUpEmail = async (lead, day) => {
         address: process.env.EMAIL_FROM
       },
       to: lead.email,
-      subject: subject,
-      html: htmlContent,
-      text: textContent
+      subject: personalizedSubject,
+      html: processedHtml,
+      text: textContent,
+      ...(attachments.length > 0 && { attachments })
     };
     
     const transport = getTransporter();
@@ -236,23 +285,30 @@ export const sendFollowUpEmail = async (lead, day) => {
 };
 
 /**
- * Send generic email (for broadcasts)
+ * Send generic email (for broadcasts and specific sending)
  */
-export const sendEmail = async (to, subject, htmlContent) => {
+export const sendEmail = async (to, subject, htmlContent, recipientName = '') => {
   try {
     const Settings = (await import('../models/Settings.js')).default;
     let settings = await Settings.findOne();
     if (!settings) settings = new Settings();
 
+    let finalSubject = subject;
     let finalHtml = htmlContent;
-    if (!htmlContent.includes('<html')) {
+
+    if (recipientName) {
+      finalSubject = finalSubject.replace(/{{name}}/g, recipientName);
+      finalHtml = finalHtml.replace(/{{name}}/g, recipientName);
+    }
+
+    if (!finalHtml.includes('<html')) {
       finalHtml = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${subject}</title>
+    <title>${finalSubject}</title>
     <style>
         body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f8fafc; }
         .email-container { max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border: 1px solid #e2e8f0; }
@@ -269,11 +325,11 @@ export const sendEmail = async (to, subject, htmlContent) => {
             <h1>${settings.companyName}</h1>
         </div>
         <div class="content">
-            ${htmlContent}
+            ${finalHtml}
             ${settings.whatsappNumber ? `
             <div style="text-align: center; margin: 24px 0;">
                 <a href="https://wa.me/${(settings.whatsappNumber || '').replace(/[^0-9]/g, '')}" class="cta-button" style="display: inline-flex; align-items: center; justify-content: center; gap: 8px; color: #ffffff;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" alt="WhatsApp" width="18" height="18" style="vertical-align: middle; margin-right: 6px; border: none;" />
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/WhatsApp.svg/64px-WhatsApp.svg.png" alt="WhatsApp" width="18" height="18" style="vertical-align: middle; margin-right: 6px; border: none;" />
                     <span style="vertical-align: middle; color: #ffffff;">Contact Us on WhatsApp</span>
                 </a>
             </div>` : ''}
@@ -292,14 +348,17 @@ export const sendEmail = async (to, subject, htmlContent) => {
 </html>`.trim();
     }
 
+    const { html: processedHtml, attachments } = processAttachments(finalHtml);
+
     const mailOptions = {
       from: {
         name: process.env.EMAIL_FROM_NAME || settings.companyName,
         address: process.env.EMAIL_FROM
       },
       to,
-      subject,
-      html: finalHtml
+      subject: finalSubject,
+      html: processedHtml,
+      ...(attachments.length > 0 && { attachments })
     };
     
     const transport = getTransporter();
